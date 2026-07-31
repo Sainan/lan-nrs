@@ -5,10 +5,10 @@
 #include <md5.hpp>
 #include <MemoryRefReader.hpp>
 #include <netAdaptor.hpp>
-#include <ObfusString.hpp>
 #include <Server.hpp>
 #include <ServerServiceUdp.hpp>
 #include <Socket.hpp>
+#include <string.hpp>
 #include <StringWriter.hpp>
 #include <utility.hpp>
 
@@ -144,19 +144,19 @@ SOUP_NOINLINE std::string get_salt(const SocketAddr& addr, MemoryRefReader& sr, 
 #if DEBUG
 	//std::cout << "Recvd chksum: " << chksum64 << std::endl;
 #endif
-	std::string salt = ObfusString("6f7fd17e0eb641ab7").str(); // < U11 && >= U10.8
+	const char* salt = "6f7fd17e0eb641ab7"; // < U11 && >= U10.8
 	if (md5_checksum(data.data() + sr.getPosition(), data.size() - sr.getPosition(), salt) != chksum64)
 	{
-		salt = ObfusString("6f7fd17e0eb641ab6").str(); // < U10.8 && >= U8.3
+		salt = "6f7fd17e0eb641ab6"; // < U10.8 && >= U8.3
 		if (md5_checksum(data.data() + sr.getPosition(), data.size() - sr.getPosition(), salt) != chksum64)
 		{
-			salt = ObfusString("3bd61b742870d0bb3").str(); // < U8.3
+			salt = "3bd61b742870d0bb3"; // < U8.3
 			if (md5_checksum(data.data() + sr.getPosition(), data.size() - sr.getPosition(), salt) != chksum64)
 			{
 #if DEBUG
 				std::cout << addr.toString() << " - Checksum mismatch: " << string::bin2hex(data) << std::endl;
 #endif
-				salt.clear(); salt.shrink_to_fit();
+				return {};
 			}
 		}
 	}
@@ -218,7 +218,7 @@ SOUP_NOINLINE void bind_packet_handler(Socket& s, const SocketAddr& addr, Memory
 	{
 		//collect_garbage();
 		account = &account_map.emplace(acctId, AccountData{}).first->second;
-		std::cout << ObfusString("Hello, ").str() << username << std::endl;
+		std::cout << "Hello, " << username << std::endl;
 	}
 	account->ip = addr.ip.getV4NativeEndian();
 	if (packet_id == 0x42)
@@ -277,7 +277,7 @@ SOUP_NOINLINE void logout_packet_handler(Socket& s, const SocketAddr& addr, Memo
 	if (auto e = account_map.find(acctId); e != account_map.end())
 	{
 		account_map.erase(e);
-		std::cout << ObfusString("Goodbye, ").str() << username << std::endl;
+		std::cout << "Goodbye, " << username << std::endl;
 	}
 }
 
@@ -317,7 +317,7 @@ SOUP_NOINLINE void resolve_packet_handler(Socket& s, const SocketAddr& addr, Mem
 			res.push_back(',');
 			res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
 #if false
-			res.append(ObfusString(",priv,").str());
+			res.append(",priv,");
 			res.append(IpAddr(e->second.ip).toString());
 			res.push_back(',');
 			res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
@@ -327,7 +327,7 @@ SOUP_NOINLINE void resolve_packet_handler(Socket& s, const SocketAddr& addr, Mem
 		}
 		else
 		{
-			res.append(ObfusString(",0,0,").str());
+			res.append(",0,0,");
 		}
 	}
 	if (!res.empty())
@@ -478,24 +478,24 @@ SOUP_NOINLINE int entry(std::vector<std::string>&& args, bool console) // OBFUS!
 			)
 		{
 			bind_addr = ad.ip_addr;
-			std::cout << ObfusString("Using ").str() << ad.name << ObfusString(" (").str() << bind_addr.toString() << ObfusString(")").str() << std::endl;
+			std::cout << "Using " << ad.name << " (" << bind_addr.toString() << ")" << std::endl;
 			break;
 		}
 	}
 	if (bind_addr.isZero())
 	{
-		std::cerr << ObfusString("No appropriate network adaptor found").str() << std::endl;
+		std::cerr << "No appropriate network adaptor found" << std::endl;
 		return 1;
 	}
 
 	ServerServiceUdp srv(handle_datagram);
 	if (!serv.bindUdp(bind_addr, PORT, &srv))
 	{
-		std::cout << ObfusString("Failed to bind UDP/").str() << PORT << std::endl;
+		std::cout << "Failed to bind UDP/" << PORT << std::endl;
 		return 1;
 	}
-	std::cout << ObfusString("Bound UDP/").str() << PORT << std::endl;
-	std::cout << ObfusString("> Set \"nrsAddresses\" to [\"").str() << bind_addr.toString() << ObfusString(":").str() << PORT << ObfusString("\"]").str() << std::endl;
+	std::cout << "Bound UDP/" << PORT << std::endl;
+	std::cout << "> Set \"nrsAddresses\" to [\"" << bind_addr.toString() << ":" << PORT << "\"]" << std::endl;
 
 	serv.run();
 	return 0;
