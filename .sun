@@ -3,6 +3,12 @@ c++ 17
 require Soup/soup
 arg -O3
 
+linker_arg -LDTLSBridge
+linker_arg -lDTLSBridge
+linker_arg -llibcrypto_static
+linker_arg -llibssl_static
+linker_arg -lAdvapi32
+
 name lan-nrs-unprotected
 linker_arg -Xlinker
 linker_arg /MAP:lan-nrs-unprotected.map

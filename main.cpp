@@ -1,4 +1,4 @@
-#define DEBUG false
+#define DEBUG true
 #define HANDLE_RELAYED_INTRODUCTIONS false
 #define PORT 1234 // UDP/3960+ may be used by the game client
 
@@ -16,6 +16,15 @@
 #include <StringWriter.hpp>
 #include <time.hpp>
 #include <utility.hpp>
+
+extern "C"
+{
+	// inputData may be modified. Returns true if input data could successfully be decoded as DTLS traffic.
+	bool ReadData(uint8_t* inputData, size_t inputDataLength, uint8_t* pendingSendBuffer, size_t* pendingSendLength, uint8_t decryptedDataBuffer[4096], size_t* decryptedDataLength, const char* endpoint);
+	void WriteData(const uint8_t* rawData, size_t rawDataLength, uint8_t* encryptedData, size_t* encryptedDataLength, const char* endpoint);
+	void init();
+	void deinit();
+}
 
 using namespace soup;
 
@@ -406,6 +415,42 @@ SOUP_NOINLINE packet_handler_t get_packet_handler(uint8_t packet_id) // OBFUS!
 
 static void handle_datagram(Socket& s, SocketAddr&& addr, std::string&& data, ServerServiceUdp&)
 {
+	bool is_dtls = false;
+	{
+		std::string data_copy = data;
+		uint8_t pendingSend[4096];
+		uint8_t decryptedData[4096];
+		size_t pendingSendLength = 0;
+		size_t decryptedDataLength = 0;
+		std::string endpoint = addr.toString();
+		is_dtls = ReadData((uint8_t*)data_copy.data(), data_copy.size(), pendingSend, &pendingSendLength, decryptedData, &decryptedDataLength, endpoint.c_str());
+		if (pendingSendLength > 0)
+		{
+			s.udpServerSend(addr, (const char*)pendingSend, pendingSendLength);
+		}
+		if (decryptedDataLength != 0)
+		{
+			const uint8_t AESkey[] = { 0x63, 0x8C, 0x59, 0x2C, 0xE1, 0x57, 0xC2, 0x1B };
+			if (decryptedDataLength == sizeof(AESkey) && memcmp(decryptedData, AESkey, sizeof(AESkey)) == 0)
+			{
+				uint8_t encryptedData[4096];
+				size_t encryptedDataLength = 0;
+				WriteData(AESkey, sizeof(AESkey), encryptedData, &encryptedDataLength, endpoint.c_str());
+				if (encryptedDataLength > 0)
+				{
+					s.udpServerSend(addr, (const char*)encryptedData, encryptedDataLength);
+				}
+				//std::cout << addr.toString() << " - Sent AES key" << std::endl;
+				return;
+			}
+			data = std::string((const char*)decryptedData, decryptedDataLength);
+		}
+		else if (is_dtls)
+		{
+			return;
+		}
+	}
+
 	MemoryRefReader sr(data);
 	SOUP_IF_UNLIKELY (!unpackData(addr, sr, data))
 	{
@@ -413,7 +458,7 @@ static void handle_datagram(Socket& s, SocketAddr&& addr, std::string&& data, Se
 	}
 
 #if DEBUG
-	//std::cout << addr.toString() << " > " << string::bin2hex(data) << std::endl;
+	std::cout << addr.toString() << " > " << string::bin2hex(data) << std::endl;
 #endif
 
 	std::string salt = get_salt(addr, sr, data);
@@ -534,6 +579,7 @@ SOUP_NOINLINE int entry(std::vector<std::string>&& args, bool console) // OBFUS!
 	std::cout << "Bound UDP/" << PORT << std::endl;
 	std::cout << "> Set \"nrsAddresses\" to [\"" << bind_addr.toString() << ":" << PORT << "\"]" << std::endl;
 
+	init();
 	serv.run();
 	return 0;
 }
