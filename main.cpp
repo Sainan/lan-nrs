@@ -10,6 +10,7 @@
 #include <Socket.hpp>
 #include <string.hpp>
 #include <StringWriter.hpp>
+#include <time.hpp>
 #include <utility.hpp>
 
 #define DEBUG false
@@ -134,8 +135,29 @@ struct AccountData
 #if HANDLE_RELAYED_INTRODUCTIONS
 	std::string salt;
 #endif
+	time_t last_nat_bind;
+
+	bool isActive() const noexcept
+	{
+		return time::unixSecondsSince(last_nat_bind) <= 120;
+	}
 };
 static std::unordered_map<std::string, AccountData> account_map;
+
+SOUP_FORCEINLINE void collect_garbage()
+{
+	for (auto it = account_map.begin(); it != account_map.end(); )
+	{
+		if (it->second.isActive())
+		{
+			++it;
+		}
+		else
+		{
+			account_map.erase(it);
+		}
+	}
+}
 
 SOUP_NOINLINE std::string get_salt(const SocketAddr& addr, MemoryRefReader& sr, const std::string& data) // OBFUS!
 {
@@ -216,7 +238,7 @@ SOUP_NOINLINE void bind_packet_handler(Socket& s, const SocketAddr& addr, Memory
 	}
 	else
 	{
-		//collect_garbage();
+		collect_garbage();
 		account = &account_map.emplace(acctId, AccountData{}).first->second;
 		std::cout << "Hello, " << username << std::endl;
 	}
@@ -238,6 +260,7 @@ SOUP_NOINLINE void bind_packet_handler(Socket& s, const SocketAddr& addr, Memory
 #if HANDLE_RELAYED_INTRODUCTIONS
 	account->salt = salt;
 #endif
+	account->last_nat_bind = time::unixSeconds();
 
 	StringWriter sw;
 	uint8_t b = 37 << 2;
@@ -313,22 +336,24 @@ SOUP_NOINLINE void resolve_packet_handler(Socket& s, const SocketAddr& addr, Mem
 		res.push_back(',');
 		if (auto e = account_map.find(target); e != account_map.end())
 		{
-			res.append(IpAddr(e->second.ip).toString());
-			res.push_back(',');
-			res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
+			if (e->second.isActive())
+			{
+				res.append(IpAddr(e->second.ip).toString());
+				res.push_back(',');
+				res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
 #if false
-			res.append(",priv,");
-			res.append(IpAddr(e->second.ip).toString());
-			res.push_back(',');
-			res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
+				res.append(",priv,");
+				res.append(IpAddr(e->second.ip).toString());
+				res.push_back(',');
+				res.append(std::to_string((packet_id & 0x20) ? e->second.server_port : e->second.client_port));
 
 #endif
-			res.push_back(',');
+				res.push_back(',');
+				continue;
+			}
+			account_map.erase(e);
 		}
-		else
-		{
-			res.append(",0,0,");
-		}
+		res.append(",0,0,");
 	}
 	if (!res.empty())
 	{
@@ -440,18 +465,25 @@ static void handle_datagram(Socket& s, SocketAddr&& addr, std::string&& data, Se
 
 			if (auto e = account_map.find(target); e != account_map.end())
 			{
-				SocketAddr to_addr(e->second.ip, (packet_id & 0x20) ? e->second.server_port : e->second.client_port);
-				StringWriter sw;
+				if (e->second.isActive())
 				{
-					uint8_t b = 24 << 2;
-					sw.u8(b);
-					ser_str(sw, acctId);
-					ser_str(sw, target);
-					std::string tmp = addr.toString();
-					ser_str(sw, tmp);
-					ser_str(sw, task_id);
+					SocketAddr to_addr(e->second.ip, (packet_id & 0x20) ? e->second.server_port : e->second.client_port);
+					StringWriter sw;
+					{
+						uint8_t b = 24 << 2;
+						sw.u8(b);
+						ser_str(sw, acctId);
+						ser_str(sw, target);
+						std::string tmp = addr.toString();
+						ser_str(sw, tmp);
+						ser_str(sw, task_id);
+					}
+					s.udpServerSend(to_addr, packData(sw.data, e->second.salt));
 				}
-				s.udpServerSend(to_addr, packData(sw.data, e->second.salt));
+				else
+				{
+					account_map.erase(e);
+				}
 			}
 		}
 		break;
