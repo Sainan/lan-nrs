@@ -239,6 +239,11 @@ SOUP_NOINLINE void bind_packet_handler(Socket& s, const SocketAddr& addr, Memory
 	else
 	{
 		collect_garbage();
+		if (account_map.size() >= 4)
+		{
+			std::cout << "The limit of 4 players has been reached." << std::endl;
+			return;
+		}
 		account = &account_map.emplace(acctId, AccountData{}).first->second;
 		std::cout << "Hello, " << username << std::endl;
 	}
