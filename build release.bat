@@ -4,6 +4,6 @@ sun
 
 echo Protecting...
 cd Virtualizer
-Virtualizer.exe /protect classic-nrs.cv
+Virtualizer.exe /protect lan-nrs.cv
 
 pause > nul

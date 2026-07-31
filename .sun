@@ -3,6 +3,6 @@ c++ 17
 require Soup/soup
 arg -O3
 
-name classic-nrs-unprotected
+name lan-nrs-unprotected
 linker_arg -Xlinker
-linker_arg /MAP:classic-nrs-unprotected.map
+linker_arg /MAP:lan-nrs-unprotected.map
