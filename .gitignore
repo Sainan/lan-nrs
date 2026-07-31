@@ -1,0 +1,6 @@
+int/
+*.exe
+*.map
+
+Virtualizer/*
+!Virtualizer/*.cv

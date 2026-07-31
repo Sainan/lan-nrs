@@ -1,0 +1,37 @@
+﻿[SECURE_ENGINE]
+SOFTWARE_NAME=
+ADVANCED_OPTIONS_NUMBER=0
+OPTION_MACROS_MAP_FUNCTIONS_NUMBER=8
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_0=get_salt(struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_0=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_1=test_packet_handler(class soup::Socket &,struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,unsigned char)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_1=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_2=bind_packet_handler(class soup::Socket &,struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,unsigned char)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_2=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_3=logout_packet_handler(class soup::Socket &,struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,unsigned char)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_3=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_4=resolve_packet_handler(class soup::Socket &,struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,unsigned char)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_4=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_5=get_packet_handler(unsigned char)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_5=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_6=entry(class std::vector<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >,class std::allocator<class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > > > &&,bool)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_6=0x00000000
+OPTION_MACROS_MAP_FUNCTION_NAME_AT_7=unpackData(struct soup::SocketAddr const &,class soup::MemoryRefReader &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > &)
+OPTION_MACROS_MAP_FUNCTION_TYPE_AT_7=0x00000000
+OPTION_MACROS_DISABLE_AT_RVA_NUMBER=0
+OPTION_VIRTUAL_MACHINE_NUMBER=1
+OPTION_VIRTUAL_MACHINE_ID_AT_0=0x28959A0A
+OPTION_VIRTUAL_MACHINE_CPUS_AT_0=1
+OPTION_VIRTUAL_MACHINE_OLD_VM_MACROS_ID=0x28959A0A
+INPUT_FILE_NAME=..\classic-nrs-unprotected.exe
+OUTPUT_FILE_NAME=..\classic-nrs.exe
+OPTION_PROTECTION_INSERT_IN_NEW_SECTION=true
+OPTION_PROTECTION_INSERT_IN_LAST_SECTION=false
+OPTION_PROTECTION_INSERT_IN_STEALTH_AREA=false
+OPTION_MACROS_ENCRYPT_ANSI_STRINGS=false
+OPTION_MACROS_ENCRYPT_UNICODE_STRINGS=false
+OPTION_PROTECTION_IS_ENTRYPOINT_OBFUSCATION=false
+OPTION_COMPRESSION_COMPRESS_SECUREENGINE=true
+OPTION_PROTECTION_STRIP_RELOCS=true
+OPTION_PROTECTION_IS_OPTIMIZE_WINDOWS_ARM=false
+
