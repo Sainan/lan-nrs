@@ -1,3 +1,7 @@
+#define DEBUG false
+#define HANDLE_RELAYED_INTRODUCTIONS false
+#define PORT 1234 // UDP/3960+ may be used by the game client
+
 #include <iostream>
 
 #include <lzf.hpp>
@@ -12,10 +16,6 @@
 #include <StringWriter.hpp>
 #include <time.hpp>
 #include <utility.hpp>
-
-#define DEBUG false
-#define HANDLE_RELAYED_INTRODUCTIONS false
-#define PORT 1234 // UDP/3960+ may be used by the game client
 
 using namespace soup;
 
